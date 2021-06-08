@@ -22,6 +22,7 @@ struct ControlTypes {
   enum Type {
     PolyZero,
     PolyOne,
+    PolyTwoRK3,
     PolyTwoRK4,
     NbControlTypes
   };
