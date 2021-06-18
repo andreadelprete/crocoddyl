@@ -65,6 +65,44 @@ template <typename Scalar>
 IntegratedActionModelAbstractTpl<Scalar>::~IntegratedActionModelAbstractTpl() {}
 
 template <typename Scalar>
+void IntegratedActionModelAbstractTpl<Scalar>::calc(const boost::shared_ptr<ActionDataAbstract>& data,
+                                                    const Eigen::Ref<const VectorXs>& x) {
+  if (static_cast<std::size_t>(x.size()) != state_->get_nx()) {
+    throw_pretty("Invalid argument: "
+                 << "x has wrong dimension (it should be " + std::to_string(state_->get_nx()) + ")");
+  }
+
+  // Static casting the data
+  boost::shared_ptr<Data> d = boost::static_pointer_cast<Data>(data);
+
+  // Computing the cost
+  differential_->calc(d->differential[0], x);
+  d->cost = d->differential[0]->cost;
+
+  // Updating the cost value
+  if (with_cost_residual_) {
+    d->r = d->differential[0]->r;
+  }
+}
+
+template <typename Scalar>
+void IntegratedActionModelAbstractTpl<Scalar>::calcDiff(const boost::shared_ptr<ActionDataAbstract>& data,
+                                                        const Eigen::Ref<const VectorXs>& x) {
+  if (static_cast<std::size_t>(x.size()) != state_->get_nx()) {
+    throw_pretty("Invalid argument: "
+                 << "x has wrong dimension (it should be " + std::to_string(state_->get_nx()) + ")");
+  }
+
+  // Static casting the data
+  boost::shared_ptr<Data> d = boost::static_pointer_cast<Data>(data);
+
+  // Computing the derivatives for the time-continuous model (i.e. differential model)
+  differential_->calcDiff(d->differential[0], x);
+  d->Lx = d->differential[0]->Lx;
+  d->Lxx = d->differential[0]->Lxx;
+}
+
+template <typename Scalar>
 const boost::shared_ptr<DifferentialActionModelAbstractTpl<Scalar> >&
 IntegratedActionModelAbstractTpl<Scalar>::get_differential() const {
   return differential_;

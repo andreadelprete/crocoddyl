@@ -25,7 +25,7 @@ class IntegratedActionModelAbstractTpl : public ActionModelAbstractTpl<_Scalar> 
   typedef _Scalar Scalar;
   typedef MathBaseTpl<Scalar> MathBase;
   typedef ActionModelAbstractTpl<Scalar> Base;
-  typedef IntegratedActionDataEulerTpl<Scalar> Data;
+  typedef IntegratedActionDataAbstractTpl<Scalar> Data;
   typedef ActionDataAbstractTpl<Scalar> ActionDataAbstract;
   typedef DifferentialActionModelAbstractTpl<Scalar> DifferentialActionModelAbstract;
   typedef ControlAbstractTpl<Scalar> ControlAbstract;
@@ -38,6 +38,9 @@ class IntegratedActionModelAbstractTpl : public ActionModelAbstractTpl<_Scalar> 
                                   boost::shared_ptr<ControlAbstract> control,
                                   const Scalar time_step = Scalar(1e-3), const bool with_cost_residual = true);
   virtual ~IntegratedActionModelAbstractTpl();
+
+  void calc(const boost::shared_ptr<ActionDataAbstract>& data, const Eigen::Ref<const VectorXs>& x);
+  void calcDiff(const boost::shared_ptr<ActionDataAbstract>& data, const Eigen::Ref<const VectorXs>& x);
 
   const boost::shared_ptr<DifferentialActionModelAbstract>& get_differential() const;
   const Scalar get_dt() const;
@@ -80,8 +83,13 @@ struct IntegratedActionDataAbstractTpl : public ActionDataAbstractTpl<_Scalar> {
   typedef typename MathBase::MatrixXs MatrixXs;
 
   template <template <typename Scalar> class Model>
-  explicit IntegratedActionDataAbstractTpl(Model<Scalar>* const model) : Base(model) {}
+  explicit IntegratedActionDataAbstractTpl(Model<Scalar>* const model) : Base(model) {
+    differential.push_back(
+          boost::shared_ptr<DifferentialActionDataAbstractTpl<Scalar> >(model->get_differential()->createData()));
+  }
   virtual ~IntegratedActionDataAbstractTpl() {}
+
+  std::vector<boost::shared_ptr<DifferentialActionDataAbstractTpl<Scalar> > > differential;
 
   using Base::cost;
   using Base::Fu;

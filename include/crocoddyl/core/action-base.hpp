@@ -119,7 +119,7 @@ class ActionModelAbstractTpl {
    * @param[in] data  Action data
    * @param[in] x     State point
    */
-  void calc(const boost::shared_ptr<ActionDataAbstract>& data, const Eigen::Ref<const VectorXs>& x);
+  virtual void calc(const boost::shared_ptr<ActionDataAbstract>& data, const Eigen::Ref<const VectorXs>& x);
 
   /**
    * @copybrief calcDiff()
@@ -127,7 +127,7 @@ class ActionModelAbstractTpl {
    * @param[in] data  Action data
    * @param[in] x     State point
    */
-  void calcDiff(const boost::shared_ptr<ActionDataAbstract>& data, const Eigen::Ref<const VectorXs>& x);
+  virtual void calcDiff(const boost::shared_ptr<ActionDataAbstract>& data, const Eigen::Ref<const VectorXs>& x);
 
   /**
    * @brief Computes the quasic static commands

@@ -8,6 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
+// #include <boost/pointer_cast.hpp>
 
 #include "crocoddyl/core/utils/exception.hpp"
 #include "crocoddyl/core/integrator/rk3.hpp"
@@ -84,6 +85,27 @@ void IntegratedActionModelRK3Tpl<Scalar>::calc(const boost::shared_ptr<ActionDat
     d->ki[0].head(nv) = d->y[0].tail(nv);
     d->ki[0].tail(nv) = d->differential[0]->xout;
     d->integral[0] = d->differential[0]->cost;
+    
+    // d->dx_rk3[1] = (time_step_ / 3.) * d->ki[0];
+    // differential_->get_state()->integrate(x, d->dx_rk3[1], d->y[1]);
+    // control_->value(1./3., p, d->u_diff[1]);
+    // differential_->calc(d->differential[1], d->y[1], d->u_diff[1]);
+    // d->ki[1].head(nv) = d->y[1].tail(nv);
+    // d->ki[1].tail(nv) = d->differential[1]->xout;
+    // d->integral[1] = d->differential[1]->cost;
+
+    // d->dx_rk3[2] = (time_step_ /3.) * d->ki[1];
+    // differential_->get_state()->integrate(d->y[1], d->dx_rk3[2], d->y[2]);
+    // control_->value(2./3., p, d->u_diff[2]);
+    // differential_->calc(d->differential[2], d->y[2], d->u_diff[2]);
+    // d->ki[2].head(nv) = d->y[2].tail(nv);
+    // d->ki[2].tail(nv) = d->differential[2]->xout;
+    // d->integral[2] = d->differential[2]->cost;
+
+    // d->dx = d->ki[2] * (time_step_ / 3.);
+    // differential_->get_state()->integrate(d->y[2], d->dx, d->xnext);
+    // d->cost = (d->integral[0] + d->integral[1] + d->integral[2]) * time_step_ / Scalar(3.);
+
     for (std::size_t i = 1; i < 3; ++i) {
       d->dx_rk3[i].noalias() = time_step_ * rk3_c_[i] * d->ki[i - 1];
       differential_->get_state()->integrate(x, d->dx_rk3[i], d->y[i]);
@@ -135,8 +157,6 @@ void IntegratedActionModelRK3Tpl<Scalar>::calcDiff(const boost::shared_ptr<Actio
     control_->multiplyByDValue(0.0, p, d->dki_dudiff[0], d->dki_du[0]); // dki_du = dki_dudiff * dudiff_du
 
     d->dli_dx[0] = d->differential[0]->Lx;
-    // d->dli_dudiff[0] = d->differential[0]->Lu;
-    // control_->multiplyByDValue(0.0, p, d->differential[0]->Lu, d->dli_du[0]); // dli_du = dli_dudiff * dudiff_du
     control_->multiplyDValueTransposeBy(0.0, p, d->differential[0]->Lu, d->dli_du[0]); // dli_du = dli_dudiff * dudiff_du
 
     d->ddli_ddx[0] = d->differential[0]->Lxx;
@@ -164,8 +184,6 @@ void IntegratedActionModelRK3Tpl<Scalar>::calcDiff(const boost::shared_ptr<Actio
       d->dki_du[i] += d->dfi_du[i];
 
       d->dli_dx[i].noalias() = d->differential[i]->Lx.transpose() * d->dyi_dx[i];
-      // d->dli_dudiff[i].noalias() = d->differential[i]->Lu.transpose();
-      // control_->multiplyByDValue(rk3_c_[i], p, d->differential[i]->Lu.transpose(), d->dli_du[i]); // dli_du = Lu * dudiff_du
       control_->multiplyDValueTransposeBy(rk3_c_[i], p, d->differential[i]->Lu, d->dli_du[i]); // dli_du = Lu * dudiff_du
       d->dli_du[i].noalias() += d->differential[i]->Lx.transpose() * d->dyi_du[i];
 

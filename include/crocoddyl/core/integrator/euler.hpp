@@ -84,7 +84,7 @@ struct IntegratedActionDataEulerTpl : public IntegratedActionDataAbstractTpl<_Sc
 
   template <template <typename Scalar> class Model>
   explicit IntegratedActionDataEulerTpl(Model<Scalar>* const model) : Base(model) {
-    differential = model->get_differential()->createData();
+    // differential = model->get_differential()->createData();
     const std::size_t ndx = model->get_state()->get_ndx();
     const std::size_t nv = model->get_state()->get_nv();
     dx = VectorXs::Zero(ndx);
@@ -94,12 +94,13 @@ struct IntegratedActionDataEulerTpl : public IntegratedActionDataAbstractTpl<_Sc
   }
   virtual ~IntegratedActionDataEulerTpl() {}
 
-  boost::shared_ptr<DifferentialActionDataAbstractTpl<Scalar> > differential;
+  // boost::shared_ptr<DifferentialActionDataAbstractTpl<Scalar> > differential;
   VectorXs dx;
   VectorXs u_diff;
   MatrixXs da_du;
   MatrixXs Ludiffu;   // temporary variables
 
+  using Base::differential;
   using Base::cost;
   using Base::Fu;
   using Base::Fx;
