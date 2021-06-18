@@ -52,7 +52,7 @@ void exposeIntegratedActionRK4() {
           ":param u: control input")
       .def<void (IntegratedActionModelRK4::*)(const boost::shared_ptr<ActionDataAbstract>&,
                                               const Eigen::Ref<const Eigen::VectorXd>&)>(
-          "calc", &ActionModelAbstract::calc, bp::args("self", "data", "x"))
+          "calc", &IntegratedActionModelAbstract::calc, bp::args("self", "data", "x"))
       .def<void (IntegratedActionModelRK4::*)(const boost::shared_ptr<ActionDataAbstract>&,
                                               const Eigen::Ref<const Eigen::VectorXd>&,
                                               const Eigen::Ref<const Eigen::VectorXd>&)>(

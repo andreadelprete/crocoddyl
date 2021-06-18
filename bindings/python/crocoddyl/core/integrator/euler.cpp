@@ -48,7 +48,7 @@ void exposeIntegratedActionEuler() {
           ":param u: control input")
       .def<void (IntegratedActionModelEuler::*)(const boost::shared_ptr<ActionDataAbstract>&,
                                                 const Eigen::Ref<const Eigen::VectorXd>&)>(
-          "calc", &ActionModelAbstract::calc, bp::args("self", "data", "x"))
+          "calc", &IntegratedActionModelAbstract::calc, bp::args("self", "data", "x"))
       .def<void (IntegratedActionModelEuler::*)(const boost::shared_ptr<ActionDataAbstract>&,
                                                 const Eigen::Ref<const Eigen::VectorXd>&,
                                                 const Eigen::Ref<const Eigen::VectorXd>&)>(
