@@ -153,11 +153,13 @@ void IntegratedActionModelRK2Tpl<Scalar>::calcDiff(const boost::shared_ptr<Actio
     d->dyi_dx[i].noalias() = d->dki_dx[i - 1] * rk2_c_[i] * time_step_;
     differential_->get_state()->JintegrateTransport(x, d->dx_rk2[i], d->dyi_dx[i], second);
     differential_->get_state()->Jintegrate(x, d->dx_rk2[i], d->dyi_dx[i], d->dyi_dx[i], first, addto);
-    d->dki_dx[i].noalias() = d->dki_dy[i] * d->dyi_dx[i];
+    d->dki_dx[i].noalias() = d->dki_dy[i] * d->dyi_dx[i];   // 2*n^3
 
+    // I think that dki_du, dfi_du, dyi_du are sparse matrices so their multiplications can be optimized
+    
     d->dyi_du[i].noalias() = d->dki_du[i - 1] * rk2_c_[i] * time_step_;
     differential_->get_state()->JintegrateTransport(x, d->dx_rk2[i], d->dyi_du[i], second); // dyi_du = Jintegrate * dyi_du
-    d->dki_du[i].noalias() = d->dki_dy[i] * d->dyi_du[i]; // TODO: optimize this matrix-matrix multiplication
+    d->dki_du[i].noalias() = d->dki_dy[i] * d->dyi_du[i];   // 2*n^2*m (TODO: optimize this matrix-matrix multiplication)
     d->dki_dudiff[i].bottomRows(nv) = d->differential[i]->Fu;
     control_->multiplyByDValue(rk2_c_[i], p, d->dki_dudiff[i], d->dfi_du[i]); // dfi_du = dki_dudiff * dudiff_du
     d->dki_du[i] += d->dfi_du[i];
@@ -168,20 +170,20 @@ void IntegratedActionModelRK2Tpl<Scalar>::calcDiff(const boost::shared_ptr<Actio
     control_->multiplyDValueTransposeBy(rk2_c_[i], p, d->differential[i]->Lu, d->dli_du[i]); // dli_du = Lu * dudiff_du
     d->dli_du[i].noalias() += d->differential[i]->Lx.transpose() * d->dyi_du[i];
 
-    d->Lxx_partialx[i].noalias() = d->differential[i]->Lxx * d->dyi_dx[i];
-    d->ddli_ddx[i].noalias() = d->dyi_dx[i].transpose() * d->Lxx_partialx[i];
+    d->Lxx_partialx[i].noalias() = d->differential[i]->Lxx * d->dyi_dx[i];    // 2*n^3
+    d->ddli_ddx[i].noalias() = d->dyi_dx[i].transpose() * d->Lxx_partialx[i]; // 2*n^3
 
     control_->multiplyByDValue(rk2_c_[i], p, d->differential[i]->Lxu, d->Lxu_i[i]); // Lxu = Lxudiff * dudiff_du
-    d->Luu_partialx[i].noalias() = d->Lxu_i[i].transpose() * d->dyi_du[i];
-    d->Lxx_partialu[i].noalias() = d->differential[i]->Lxx * d->dyi_du[i];
+    d->Luu_partialx[i].noalias() = d->Lxu_i[i].transpose() * d->dyi_du[i];    // 2*n*m^2
+    d->Lxx_partialu[i].noalias() = d->differential[i]->Lxx * d->dyi_du[i];    // 2*n^2*m
     control_->multiplyByDValue(rk2_c_[i], p, d->differential[i]->Luu, d->ddli_dudiffdu[i]); // ddli_dudiffdu = ddli_ddudiff * dudiff_du
     control_->multiplyDValueTransposeBy(rk2_c_[i], p, d->ddli_dudiffdu[i], d->ddli_ddu[i]); // ddli_ddu = dudiff_du.T * ddli_dudiffdu
     d->ddli_ddu[i].noalias() += d->Luu_partialx[i].transpose() + d->Luu_partialx[i] +
-                                d->dyi_du[i].transpose() * d->Lxx_partialu[i];
+                                d->dyi_du[i].transpose() * d->Lxx_partialu[i];  // 2*n*m^2
 
-    d->ddli_dxdudiff[i].noalias() = d->dyi_dx[i].transpose() * d->differential[i]->Lxu;
+    d->ddli_dxdudiff[i].noalias() = d->dyi_dx[i].transpose() * d->differential[i]->Lxu; // 2*n^2*m
     control_->multiplyByDValue(rk2_c_[i], p, d->ddli_dxdudiff[i], d->ddli_dxdu[i]); // ddli_dxdu = ddli_dxdudiff * dudiff_du
-    d->ddli_dxdu[i].noalias() += d->dyi_dx[i].transpose() * d->Lxx_partialu[i];
+    d->ddli_dxdu[i].noalias() += d->dyi_dx[i].transpose() * d->Lxx_partialu[i];   // 2*n^2*m
 
     d->Fx.noalias() = time_step_ * d->dki_dx[1];
     differential_->get_state()->JintegrateTransport(x, d->dx, d->Fx, second);
@@ -196,6 +198,10 @@ void IntegratedActionModelRK2Tpl<Scalar>::calcDiff(const boost::shared_ptr<Actio
     d->Lxx.noalias() = time_step_ * d->ddli_ddx[1];
     d->Luu.noalias() = time_step_ * d->ddli_ddu[1];
     d->Lxu.noalias() = time_step_ * d->ddli_dxdu[1];
+    // Computational cost:
+    // Dynamics = 2*n^3 + 2*n^2*m
+    // Cost     = 4*n^3 + 6*n^2*m + 4*n*m^2
+    // Total    = 6*n^3 + 8*n^2*m + 4*n*m^2
   } else {
     differential_->get_state()->Jintegrate(x, d->dx, d->Fx, d->Fx);
     d->Fu.setZero();
