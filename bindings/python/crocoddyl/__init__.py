@@ -122,7 +122,8 @@ class GepettoDisplay(DisplayAbstract):
             warnings.warn("Numpy matrix supports will be removed in future release", DeprecationWarning, stacklevel=2)
         if ps:
             for key, p in ps.items():
-                self.robot.viewer.gui.setCurvePoints(self.frameTrajGroup + "/" + key, p)
+                if(len(p)>1):
+                    self.robot.viewer.gui.setCurvePoints(self.frameTrajGroup + "/" + key, p)
         if not dts:
             dts = [0.] * len(xs)
 
