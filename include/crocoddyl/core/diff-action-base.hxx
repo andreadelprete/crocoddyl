@@ -57,6 +57,10 @@ void DifferentialActionModelAbstractTpl<Scalar>::quasiStatic(
     for (std::size_t i = 0; i < maxiter; ++i) {
       calc(data, x, u);
       calcDiff(data, x, u);
+      if(data->xout.hasNaN())
+        std::cout<<"xout contains nan\n";
+      if(data->Fu.hasNaN())
+        std::cout<<"Fu contains nan\n";
       du.noalias() = -pseudoInverse(data->Fu) * data->xout;
       u += du;
       if (du.norm() <= tol) {

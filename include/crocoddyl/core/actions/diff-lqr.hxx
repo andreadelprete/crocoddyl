@@ -53,6 +53,17 @@ void DifferentialActionModelLQRTpl<Scalar>::calc(const boost::shared_ptr<Differe
   }
   data->cost =
       Scalar(0.5) * x.dot(Lxx_ * x) + Scalar(0.5) * u.dot(Luu_ * u) + x.dot(Lxu_ * u) + lx_.dot(x) + lu_.dot(u);
+
+  if(data->xout.hasNaN()){
+    std::cout<<"xout has NaN\n";
+    std::cout<<"q has nan "<<q.hasNaN()<<"\n";
+    std::cout<<"v has nan "<<v.hasNaN()<<"\n";
+    std::cout<<"u has nan "<<u.hasNaN()<<"\n";
+    std::cout<<"Fq has nan "<<Fq_.hasNaN()<<"\n";
+    std::cout<<"Fv has nan "<<Fv_.hasNaN()<<"\n";
+    std::cout<<"Fu has nan "<<Fu_.hasNaN()<<"\n";
+    std::cout<<"f0 has nan "<<f0_.hasNaN()<<"\n";
+  }
 }
 
 template <typename Scalar>

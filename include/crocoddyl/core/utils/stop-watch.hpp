@@ -35,7 +35,7 @@
 #endif
 
 // Uncomment the following line to activate the profiler
-//#define PROFILER_ACTIVE
+#define PROFILER_ACTIVE
 
 #ifdef PROFILER_ACTIVE
 #define START_PROFILER(name) getProfiler().start(name)

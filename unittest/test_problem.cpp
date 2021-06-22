@@ -376,6 +376,8 @@ void test_quasiStatic_diffAction(DifferentialActionModelTypes::Type action_model
     const boost::shared_ptr<crocoddyl::ActionDataAbstract>& data = model->createData();
     Eigen::VectorXd u = Eigen::VectorXd::Zero(model->get_nu());
     model->quasiStatic(data, u, xs[i]);
+    if(!(u - us[i]).isZero(1e-7))
+      std::cout<<"u "<<u.transpose()<<"\nus "<<us[i].transpose()<<"\n";
     BOOST_CHECK((u - us[i]).isZero(1e-7));
   }
   problem2.quasiStatic(us, xs);
